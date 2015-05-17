@@ -201,8 +201,7 @@ public class Urine extends Activity {
         	s[i]= hsb[1];
     	}
     	//Urine use s for linear regeression.
-    	//Test again.
-    	concentration = 0;
+
     	concentration = linear_regression(urine_c, s);
     	
 
