@@ -200,8 +200,9 @@ public class Urine extends Activity {
         	Log.i("Testing", "The hsb is: "+ hsb[0] + " " + hsb[1] + " " + hsb[2]);
         	s[i]= hsb[1];
     	}
+    	//Urine use s for linear regeression.
     	concentration = linear_regression(urine_c, s);
-
+    	
 
 
     	
