@@ -70,7 +70,7 @@ public class MainActivity extends Activity {
     private static ArrayList<Float> y_list = new ArrayList<Float>();
     private static int cube_x = 7;
     private static int cube_y = 7;
-    
+    private TextView t;
     
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -83,7 +83,9 @@ public class MainActivity extends Activity {
         Button photoButton = (Button) this.findViewById(R.id.photo);
         Button analysisButton = (Button) this.findViewById(R.id.Analysis);
         Button loadImageButton = (Button) this.findViewById(R.id.load);
-        
+        t=new TextView(this); 
+        t=(TextView)findViewById(R.id.info);
+        t.setTextColor(Color.parseColor("#FFFFFF"));
         photoButton.setOnClickListener(new View.OnClickListener() {
         	
             @Override
@@ -111,6 +113,7 @@ public class MainActivity extends Activity {
 			public void onClick(View v) {
 				concentration = concentrationAnalysis(analysis_bitmap);
 				Log.i("Testing", "The concentration is: "+ concentration);
+				t.setText("Concentration: " + Float.toString(concentration));
 			}
 		});
         loadImageButton.setOnClickListener(new View.OnClickListener() {
@@ -183,6 +186,7 @@ public class MainActivity extends Activity {
     	//first_y = bitmapHeight * ()
     	Log.i("Testing", "The bitmap Height is: " + bitmapHeight);
     	Log.i("Testing", "The bitmap Width is: " + bitmapWidth);
+  
     	//Need to compute all reference cube first
     	//RIGHTMOST cube
     	for(int i=0; i<width.length; i++){

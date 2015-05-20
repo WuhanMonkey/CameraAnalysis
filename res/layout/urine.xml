@@ -61,4 +61,14 @@
         android:layout_marginRight="17dp"
         android:text="Load" />
 
+    <TextView
+        android:id="@+id/info"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/photo"
+        android:layout_alignLeft="@+id/imageView1"
+        android:layout_marginBottom="50dp"
+        android:text="Concentration: "
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
 </RelativeLayout>

@@ -72,6 +72,7 @@ public class Urine extends Activity {
     private static int cube_x = 4;
     private static int cube_y = 4;
     private static Activity thisActivity = null;
+    private TextView t;
     
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -85,6 +86,9 @@ public class Urine extends Activity {
         Button analysisButton = (Button) this.findViewById(R.id.Analysis);
         Button loadImageButton = (Button) this.findViewById(R.id.load);
         thisActivity = this;
+        t=new TextView(this); 
+        t=(TextView)findViewById(R.id.info);
+        t.setTextColor(Color.parseColor("#FFFFFF"));
         photoButton.setOnClickListener(new View.OnClickListener() {
         	
             @Override
@@ -112,6 +116,7 @@ public class Urine extends Activity {
 			public void onClick(View v) {
 				concentration = concentrationAnalysis(analysis_bitmap);
 				Log.i("Testing", "The concentration is: "+ concentration);
+				t.setText("Concentration: " + Float.toString(concentration));
 			}
 		});
         loadImageButton.setOnClickListener(new View.OnClickListener() {
@@ -169,11 +174,12 @@ public class Urine extends Activity {
     	int w_rgb[] = new int[3];
     	float cmyk[] = new float[4];
     	float cie[] = new float[2];
-    	double urine_c[] = {3.1,6.2,12,25,50,100};
-    	int width[] = {70,82,92,69,81,91};
-    	int height[] = {193,193,193,210,210,210};
-    	float s[] = new float[width.length];
+    	double urine_c[] = {2.41,5.24,1.43,3.45};
+    	int width[] = {78,100,78,100};
+    	int height[] = {236,238,255,255};
+    	float h[] = new float[width.length];
     	float hsb[] = new float[3];
+    	float target = 0;
     	bitmapHeight = analysis_bitmap.getHeight();
     	bitmapWidth = analysis_bitmap.getWidth();
     	//first_x = bitmapWidth * (5 + x_offset)/(45 + 2*x_offset);
@@ -181,7 +187,7 @@ public class Urine extends Activity {
     	Log.i("Testing", "The bitmap Height is: " + bitmapHeight);
     	Log.i("Testing", "The bitmap Width is: " + bitmapWidth);
     	//Need to compute all reference cube first
-    	w_rgb = cal_avg_rgb(analysis_bitmap, 91, 174, true);
+    	//w_rgb = cal_avg_rgb(analysis_bitmap, 91, 174, true);
     	Log.i("Testing", "The avg rgb is: "+ w_rgb[0] + " " + w_rgb[1] +" " + w_rgb[2]);
     	Toast.makeText(thisActivity, Integer.toString(w_rgb[0]) + " " + Integer.toString(w_rgb[1]) + " " + Integer.toString(w_rgb[2]), Toast.LENGTH_SHORT).show();
     	
@@ -190,7 +196,7 @@ public class Urine extends Activity {
     		rgb = cal_avg_rgb(analysis_bitmap, width[i], height[i], true);
     		Log.i("Testing", "The avg rgb before adjustment is: "+ rgb[0] + " " + rgb[1] +" " + rgb[2]);
 
-    		rgb = w_normalization(w_rgb, rgb);
+    		//rgb = w_normalization(w_rgb, rgb);
     		Log.i("Testing", "The avg rgb after adjustment is: "+ rgb[0] + " " + rgb[1] +" " + rgb[2]);
         	cmyk = rgb2cmyk(rgb);
         	Log.i("Testing", "The cmyk is: "+ cmyk[0] + " " + cmyk[1] +" " + cmyk[2] + " " +cmyk[3]);
@@ -198,13 +204,17 @@ public class Urine extends Activity {
         	Log.i("Testing", "The cie is: "+ cie[0] + " " + cie[1]);
         	hsb = rgb2hsb(rgb);
         	Log.i("Testing", "The hsb is: "+ hsb[0] + " " + hsb[1] + " " + hsb[2]);
-        	s[i]= hsb[1];
+        	h[i]= hsb[0];
     	}
-    	//Urine use s for linear regeression.
+    	//Urine use h for linear regeression.
+    	for(int i =0; i < h.length;i++){
 
-    	concentration = linear_regression(urine_c, s);
+    		Log.i("Testing", "The h is: "+ h[i]);
+    	}
     	
-
+    	//concentration = linear_regression(urine_c, h);
+    	
+    	concentration = nearest_neighbor(urine_c, h, 0.4774f);
 
     	
     	
@@ -345,8 +355,47 @@ public class Urine extends Activity {
     	return result;
     }
     
-    public static void nearest_neighbor(float X, float Y){
-    	float closest_X = 0;
+    public static float nearest_neighbor(double[] urine_c, float[] h, float target){
+    	float concentration =0;
+    	float[] diff_h= new float[h.length];
+    	for(int i = 0; i < h.length; i++){
+    		diff_h[i] = Math.abs(h[i] - target);
+    	}
+    	float min = 1000000;
+    	int index = 0;
+    	int min_index = 0;
+    	int second_index = 0;
+    	for(int i = 0; i <diff_h.length; i++){
+    		if(min > diff_h[i]){
+    			min = diff_h[i];
+    			index = i;
+    		}
+    	}
+    	min_index = index;
+    	diff_h[index] = 1000001;
+    	min = 1000000;
+    	for(int i = 0; i <diff_h.length; i++){
+    		if(min > diff_h[i]){
+    			min = diff_h[i];
+    			index = i;
+    		}
+    	}
+    	second_index = index;
+    	Log.i("Testing", "1st min is: " + Float.toString(h[min_index]) + " 2nd min is: " + Float.toString(h[second_index]));
+    	
+    	SimpleRegression regression = new SimpleRegression();
+    	regression.addData(urine_c[min_index], h[min_index]);
+    	regression.addData(urine_c[second_index], h[second_index]);
+    	Log.i("Testing", "Intercept is: " + regression.getIntercept());
+    	Log.i("Testing", "slope is: " + regression.getSlope());
+    	
+    	concentration = (float) (target - regression.getIntercept())/((float)regression.getSlope());
+    	
+    	
+    	
+    	return concentration;
+    	
+    	/**float closest_X = 0;
     	float closest_Y = 0;
     	float temp_x = 0;
     	float temp_y = 0;
@@ -367,7 +416,7 @@ public class Urine extends Activity {
     	closest_X = x_list.get(nearest_id);
     	closest_Y = y_list.get(nearest_id);
     	x_list.clear();
-    	y_list.clear();
+    	y_list.clear();**/
     }
     
     public static void row_diff(int[] r_arr, int[] g_arr, int[] b_arr){
