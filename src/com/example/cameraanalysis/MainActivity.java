@@ -37,6 +37,7 @@ import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.TextView;
+import com.Liulab.cameraanalysis.R;
 
 
 public class MainActivity extends Activity {
@@ -68,9 +69,13 @@ public class MainActivity extends Activity {
     private static int first_y = 0;
     private static ArrayList<Float> x_list = new ArrayList<Float>();
     private static ArrayList<Float> y_list = new ArrayList<Float>();
-    private static int cube_x = 7;
-    private static int cube_y = 7;
-    private TextView t;
+    private static int cube_x = 4;
+    private static int cube_y = 4;
+    private static TextView t_glu;
+    private static TextView t_chl;
+    private static TextView t_hdl;
+    private static TextView glu_warn;
+    private static TextView chl_warn;
     
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -83,9 +88,23 @@ public class MainActivity extends Activity {
         Button photoButton = (Button) this.findViewById(R.id.photo);
         Button analysisButton = (Button) this.findViewById(R.id.Analysis);
         Button loadImageButton = (Button) this.findViewById(R.id.load);
-        t=new TextView(this); 
-        t=(TextView)findViewById(R.id.info);
-        t.setTextColor(Color.parseColor("#FFFFFF"));
+        t_glu=new TextView(this); 
+        t_glu=(TextView)findViewById(R.id.glu);
+        t_glu.setTextColor(Color.parseColor("#FFFFFF"));
+        t_chl=new TextView(this); 
+        t_chl=(TextView)findViewById(R.id.chl);
+        t_chl.setTextColor(Color.parseColor("#FFFFFF"));
+        t_hdl=new TextView(this); 
+        t_hdl=(TextView)findViewById(R.id.hdl);
+        t_hdl.setTextColor(Color.parseColor("#FFFFFF"));
+        glu_warn=new TextView(this); 
+        glu_warn=(TextView)findViewById(R.id.glu_warn);
+        glu_warn.setTextColor(Color.parseColor("#FFFFFF"));
+        chl_warn=new TextView(this); 
+        chl_warn=(TextView)findViewById(R.id.chl_warn);
+        chl_warn.setTextColor(Color.parseColor("#FFFFFF"));
+        
+        
         photoButton.setOnClickListener(new View.OnClickListener() {
         	
             @Override
@@ -111,9 +130,7 @@ public class MainActivity extends Activity {
 			
 			@Override
 			public void onClick(View v) {
-				concentration = concentrationAnalysis(analysis_bitmap);
-				Log.i("Testing", "The concentration is: "+ concentration);
-				t.setText("Concentration: " + Float.toString(concentration));
+				concentrationAnalysis(analysis_bitmap);
 			}
 		});
         loadImageButton.setOnClickListener(new View.OnClickListener() {
@@ -164,63 +181,126 @@ public class MainActivity extends Activity {
             imageView.setImageBitmap(faceView);
         }
     } 
-    public static float concentrationAnalysis(Bitmap analysis_bitmap){
-    	float concentration = 0.0f;
-    	int argb=0;
-    	int r=0;
-    	int g=0;
-    	int b=0;
-    	float X=0;
-    	float Y=0;
+    public static void concentrationAnalysis(Bitmap analysis_bitmap){
+
     	int rgb[] = new int[3];
-    	float cmyk[] = new float[4];
-    	float cie[] = new float[2];
-    	double glucose_c[] = {0.49136,0.7924,1.079,1.3979,1.699,2};
-    	int width[] = {128,111,96,77,60,44,27};
-    	int height[] = {220,220,220,220,220,220,220};
-    	float k[] = new float[7];
+    	double glu_c[] = {2.3,4.6,7.7,13.4};      
+    	double hdl_c[] = {0.42,0.83,1.32};
+    	double chl_c[] = {2.98,3.64,5.09,6.14};
+    	int glu_width[] = {62,62,62,62};
+    	int glu_height[] = {183,206,228,249};
+    	int hdl_width[] ={81,81,81};
+    	int hdl_height[] = {183,228,249}; 
+    	int chl_width[] ={100,100,100,100};
+    	int chl_height[] = {183,206,228,249}; 
+    	int glu_target_width = 145;
+    	int glu_target_height = 208;
+    	int hdl_target_width = 145;
+    	int hdl_target_height = 230;
+    	int chl_target_width = 145;
+    	int chl_target_height = 249;
+    	float target_s = 0;
+    	float s[] = new float[glu_width.length];
     	float hsb[] = new float[3];
     	bitmapHeight = analysis_bitmap.getHeight();
     	bitmapWidth = analysis_bitmap.getWidth();
-    	//first_x = bitmapWidth * (5 + x_offset)/(45 + 2*x_offset);
-    	//first_y = bitmapHeight * ()
+    	float result_glu =0;
+    	float result_hdl =0;
+    	float result_chl =0;
+
     	Log.i("Testing", "The bitmap Height is: " + bitmapHeight);
     	Log.i("Testing", "The bitmap Width is: " + bitmapWidth);
   
-    	//Need to compute all reference cube first
-    	//RIGHTMOST cube
-    	for(int i=0; i<width.length; i++){
-    		rgb = cal_avg_rgb(analysis_bitmap, width[i], height[i], true);
+    	//GLU
+    	for(int i=0; i<glu_width.length; i++){
+    		rgb = cal_avg_rgb(analysis_bitmap, glu_width[i], glu_height[i], true);
     		Log.i("Testing", "The avg rgb is: "+ rgb[0] + " " + rgb[1] +" " + rgb[2]);
-        	cmyk = rgb2cmyk(rgb);
-        	Log.i("Testing", "The cmyk is: "+ cmyk[0] + " " + cmyk[1] +" " + cmyk[2] + " " +cmyk[3]);
-        	cie = rgb2cie(rgb);
-        	Log.i("Testing", "The cie is: "+ cie[0] + " " + cie[1]);
-        	k[i] = cmyk[3];
         	hsb = rgb2hsb(rgb);
         	Log.i("Testing", "The hsb is: "+ hsb[0] + " " + hsb[1] + " " + hsb[2]);
+        	s[i] = hsb[1] * 100;
     	}
-    	for(int i=0; i<7; i++){
-    		Log.i("Testing", "The k is: "+ k[i]+" ");
+    	rgb = cal_avg_rgb(analysis_bitmap, glu_target_width, glu_target_height, true);
+    	hsb = rgb2hsb(rgb);
+    	target_s = hsb[1]*100;
+    	
+    	result_glu = linear_regression(glu_c, s, target_s);
+    	
+    	//HDL
+    	for(int i=0; i<hdl_width.length; i++){
+    		rgb = cal_avg_rgb(analysis_bitmap, hdl_width[i], hdl_height[i], true);
+    		Log.i("Testing", "The avg rgb is: "+ rgb[0] + " " + rgb[1] +" " + rgb[2]);
+        	hsb = rgb2hsb(rgb);
+        	Log.i("Testing", "The hsb is: "+ hsb[0] + " " + hsb[1] + " " + hsb[2]);
+        	s[i] = hsb[1] * 100;
     	}
-    	concentration = linear_regression(glucose_c, k);
+    	rgb = cal_avg_rgb(analysis_bitmap, hdl_target_width, hdl_target_height, true);
+    	hsb = rgb2hsb(rgb);
+    	target_s = hsb[1]*100;
+    	
+    	result_hdl = linear_regression(hdl_c, s, target_s);
+    	
+    	//CHL
+    	for(int i=0; i<chl_width.length; i++){
+    		rgb = cal_avg_rgb(analysis_bitmap, chl_width[i], chl_height[i], true);
+    		Log.i("Testing", "The avg rgb is: "+ rgb[0] + " " + rgb[1] +" " + rgb[2]);
+        	hsb = rgb2hsb(rgb);
+        	Log.i("Testing", "The hsb is: "+ hsb[0] + " " + hsb[1] + " " + hsb[2]);
+        	s[i] = hsb[1] * 100;
+    	}
+    	rgb = cal_avg_rgb(analysis_bitmap, chl_target_width, chl_target_height, true);
+    	Log.i("Testing", "The target chl avg rgb is: "+ rgb[0] + " " + rgb[1] +" " + rgb[2]);
+    	hsb = rgb2hsb(rgb);
+    	target_s = hsb[1]*100;
 
-
-
+    	result_chl = linear_regression(chl_c, s, target_s);
     	
     	
-    	
-    	
-    	//Then use the testing cube X Y for nearest neighbor.
-    	//nearest_neighbor(X,Y);
-    	//Need two round to calculate average. one is to calculate the Reference, one is to calculate the test cube. 
-    	//For reference, needs to add the value to reference list after converting to XY.
-    	//The r g b might not work, then return an object such as arraylist.
-    	//Log.i("Testing", "The rgb is: " + Integer.toString(r) +" "+Integer.toString(g) + " "+ Integer.toString(b));**/
+    	if(result_glu < 0){
+    		result_glu = 0;
+    	}
+    	if(result_hdl < 0){
+    		result_hdl = 0;
+    	}
+    	if(result_chl < 0){
+    		result_chl = 0;
+    	}
 
+		t_glu.setText("Glucose concentration: " + Float.toString(result_glu) + " mmol/L");
+		if(result_glu > 5.8){
+			glu_warn.setText("Your Glucose is too high!");
+			glu_warn.setTextColor(Color.parseColor("#FF0000"));
+		}
+		else if (result_glu < 3.9){
+			glu_warn.setText("Your Glucose is too low!");
+			glu_warn.setTextColor(Color.parseColor("#FF0000"));
+		}
+		else {
+			glu_warn.setText("Your Glucose is Normal!");
+			glu_warn.setTextColor(Color.parseColor("#008000"));
+		}
+		
+		t_hdl.setText("HDL concentration: " + Float.toString(result_hdl)+ " mmol/L");
+		t_chl.setText("Cholesterol concentration: " + Float.toString(result_chl)+ " mmol/L");
+		
+		if(result_chl > 6.2){
+			chl_warn.setText("Your Cholesterol is too high!");
+			chl_warn.setTextColor(Color.parseColor("#FF0000"));
+		}
+		else {
+			chl_warn.setText("Your Cholesterol is normal!");
+			chl_warn.setTextColor(Color.parseColor("#008000"));
+		}
 
-    	   	
-    	return concentration;
+    	   
+    }
+    
+    
+    public static int[] w_normalization(int[] w_rgb, int[] rgb){
+    	rgb[0] = (int)(rgb[0] *(float)255/w_rgb[0]);
+    	rgb[1] = (int)(rgb[1] *(float)255/w_rgb[1]);
+    	rgb[2] = (int)(rgb[2] *(float)255/w_rgb[2]);
+    	return rgb;
+    	
     }
     
     public static int[] cal_avg_rgb(Bitmap analysis_bitmap, int x, int y, boolean ref){
@@ -323,11 +403,11 @@ public class MainActivity extends Activity {
  }
     
     
-    public static float linear_regression(double[] concentration, float[] k){
+    public static float linear_regression(double[] concentration, float[] k, float target_k){
     	float result = 0;
     	SimpleRegression regression = new SimpleRegression();
     	for(int i = 0; i<concentration.length; i++){
-    		regression.addData(concentration[i], k[i+1]);
+    		regression.addData(concentration[i], k[i]);
     	}
 
     	// displays intercept of regression line
@@ -336,7 +416,12 @@ public class MainActivity extends Activity {
     	Log.i("Testing", "slope is: " + regression.getSlope());
     	// displays slope standard error
     	Log.i("Testing", "standard error is: " + regression.getSlopeStdErr());
+    	
+    	result = (float) (target_k - regression.getIntercept())/((float)regression.getSlope());
+    	
     	return result;
+    	
+    	
     }
     
     public static void nearest_neighbor(float X, float Y){

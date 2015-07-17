@@ -38,6 +38,7 @@ import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.TextView;
+import com.Liulab.cameraanalysis.R;
 
 
 public class Urine extends Activity {
@@ -60,19 +61,12 @@ public class Urine extends Activity {
     public static float concentration;
     public static int bitmapHeight;
     public static int bitmapWidth;
-    private static int r_arr[] = new int[200];
-    private static int g_arr[] = new int[200];
-    private static int b_arr[] = new int[200];
-    private static int x_offset = 0;
-    private static int y_offset = 0;
-    private static int first_x = 0;
-    private static int first_y = 0;
-    private static ArrayList<Float> x_list = new ArrayList<Float>();
-    private static ArrayList<Float> y_list = new ArrayList<Float>();
-    private static int cube_x = 4;
-    private static int cube_y = 4;
+
+    private static int cube_x = 5;
+    private static int cube_y = 5;
     private static Activity thisActivity = null;
-    private TextView t;
+    private static TextView t_glu;
+    private static TextView t_pro;
     
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -86,9 +80,12 @@ public class Urine extends Activity {
         Button analysisButton = (Button) this.findViewById(R.id.Analysis);
         Button loadImageButton = (Button) this.findViewById(R.id.load);
         thisActivity = this;
-        t=new TextView(this); 
-        t=(TextView)findViewById(R.id.info);
-        t.setTextColor(Color.parseColor("#FFFFFF"));
+        t_glu=new TextView(this); 
+        t_glu=(TextView)findViewById(R.id.glu);
+        t_glu.setTextColor(Color.parseColor("#FFFFFF"));
+        t_pro=new TextView(this); 
+        t_pro=(TextView)findViewById(R.id.pro);
+        t_pro.setTextColor(Color.parseColor("#FFFFFF"));
         photoButton.setOnClickListener(new View.OnClickListener() {
         	
             @Override
@@ -114,9 +111,8 @@ public class Urine extends Activity {
 			
 			@Override
 			public void onClick(View v) {
-				concentration = concentrationAnalysis(analysis_bitmap);
-				Log.i("Testing", "The concentration is: "+ concentration);
-				t.setText("Concentration: " + Float.toString(concentration));
+					concentrationAnalysis(analysis_bitmap);
+
 			}
 		});
         loadImageButton.setOnClickListener(new View.OnClickListener() {
@@ -162,83 +158,160 @@ public class Urine extends Activity {
             imageView.setImageBitmap(faceView);
         }
     } 
-    public static float concentrationAnalysis(Bitmap analysis_bitmap){
-    	float concentration = 0.0f;
-    	int argb=0;
-    	int r=0;
-    	int g=0;
-    	int b=0;
-    	float X=0;
-    	float Y=0;
+    public static void concentrationAnalysis(Bitmap analysis_bitmap){
     	int rgb[] = new int[3];
     	int w_rgb[] = new int[3];
+    	int w_ref_rgb[] = new int[3];
     	float cmyk[] = new float[4];
     	float cie[] = new float[2];
-    	double urine_c[] = {2.41,5.24,1.43,3.45};
-    	int width[] = {78,100,78,100};
-    	int height[] = {236,238,255,255};
-    	float h[] = new float[width.length];
+    	double pro_c[] = {20,10,5,2.5,1.25,0.625,0};
+    	double glu_c[] = {100,50,25,12.5,6.25,0};      
+    	int glu_width[] = {38,61,83,102,123,147};
+    	int glu_height[] = {201,201,201,201,201,201};
+    	int pro_width[] ={38,57,73,92,109,128,147};
+    	int pro_height[] = {180,180,180,180,180,180,180}; 
+    	int glu_target_width = 95;
+    	int glu_target_height = 237;
+    	int pro_target_width = 119;
+    	int pro_target_height = 237;
+    	float h_glu[] = new float[glu_width.length];
+    	float h_pro[] = new float[pro_width.length];
+    	float k_glu[] = new float[glu_width.length];
+    	float k_pro[] = new float[pro_width.length];
     	float hsb[] = new float[3];
-    	float target = 0;
+    	float target_pro = 0;
+    	float target_glu = 0;
+    	float target_k_pro = 0;
+    	float target_k_glu = 0;
+    	float result_glu = 0;
+    	float result_pro = 0;
+    	int white_width =83;
+    	int white_height = 236;
+    	int white_ref_width = 100;
+    	int white_ref_height = 170;
     	bitmapHeight = analysis_bitmap.getHeight();
     	bitmapWidth = analysis_bitmap.getWidth();
-    	//first_x = bitmapWidth * (5 + x_offset)/(45 + 2*x_offset);
-    	//first_y = bitmapHeight * ()
+
     	Log.i("Testing", "The bitmap Height is: " + bitmapHeight);
     	Log.i("Testing", "The bitmap Width is: " + bitmapWidth);
-    	//Need to compute all reference cube first
-    	//w_rgb = cal_avg_rgb(analysis_bitmap, 91, 174, true);
-    	Log.i("Testing", "The avg rgb is: "+ w_rgb[0] + " " + w_rgb[1] +" " + w_rgb[2]);
-    	Toast.makeText(thisActivity, Integer.toString(w_rgb[0]) + " " + Integer.toString(w_rgb[1]) + " " + Integer.toString(w_rgb[2]), Toast.LENGTH_SHORT).show();
-    	
-    	//RIGHTMOST cube
-    	for(int i=0; i<width.length; i++){
-    		rgb = cal_avg_rgb(analysis_bitmap, width[i], height[i], true);
-    		Log.i("Testing", "The avg rgb before adjustment is: "+ rgb[0] + " " + rgb[1] +" " + rgb[2]);
+    	w_rgb = cal_avg_rgb(analysis_bitmap, white_width, white_height, true);
+    	Log.i("Testing", "The avg white rgb is: "+ w_rgb[0] + " " + w_rgb[1] +" " + w_rgb[2]);
+    	w_ref_rgb = cal_avg_rgb(analysis_bitmap, white_ref_width, white_ref_height, true);
+    	Log.i("Testing", "The avg white ref rgb is: "+ w_ref_rgb[0] + " " + w_ref_rgb[1] +" " + w_ref_rgb[2]);
 
-    		//rgb = w_normalization(w_rgb, rgb);
+    	
+    	//PRO
+    	for(int i=0; i<pro_width.length; i++){
+    		rgb = cal_avg_rgb(analysis_bitmap, pro_width[i], pro_height[i], true);
+    		rgb = w_normalization(w_ref_rgb, rgb);
     		Log.i("Testing", "The avg rgb after adjustment is: "+ rgb[0] + " " + rgb[1] +" " + rgb[2]);
-        	cmyk = rgb2cmyk(rgb);
-        	Log.i("Testing", "The cmyk is: "+ cmyk[0] + " " + cmyk[1] +" " + cmyk[2] + " " +cmyk[3]);
-        	cie = rgb2cie(rgb);
-        	Log.i("Testing", "The cie is: "+ cie[0] + " " + cie[1]);
         	hsb = rgb2hsb(rgb);
-        	Log.i("Testing", "The hsb is: "+ hsb[0] + " " + hsb[1] + " " + hsb[2]);
-        	h[i]= hsb[0];
+        	h_pro[i]= hsb[0]*360;
+        	Log.i("Testing", "The h is: "+ hsb[0]*360);
+        	cmyk = rgb2cmyk(rgb);
+        	k_pro[i] = cmyk[3];
     	}
-    	//Urine use h for linear regeression.
-    	for(int i =0; i < h.length;i++){
+    	rgb = cal_avg_rgb(analysis_bitmap, pro_target_width, pro_target_height, true);
+    	rgb = w_normalization(w_ref_rgb, rgb);
+    	Log.i("Testing", "The target pro avg rgb is: "+ rgb[0] + " " + rgb[1] +" " + rgb[2]);
+    	hsb = rgb2hsb(rgb);
+    	target_pro = hsb[0]*360;
+    	cmyk = rgb2cmyk(rgb);
+    	target_k_pro = cmyk[3];
+    	
 
-    		Log.i("Testing", "The h is: "+ h[i]);
+    	//result_pro = nearest_neighbor(pro_c, k_pro, target_k_pro);
+    	result_pro = nearest_neighbor(pro_c, h_pro, target_pro);
+    	float h_avg=0;
+    	//GLU
+    	for(int i=0; i<glu_width.length; i++){
+    		//rgb = cal_avg_rgb(analysis_bitmap, glu_width[i], glu_height[i], true);
+    		h_avg = h_avg(analysis_bitmap, glu_width[i], glu_height[i],w_ref_rgb);
+    		h_glu[i] = h_avg*360;
+    		Log.i("Testing", "The h average is: " + Float.toString(h_avg*360));
+    		//Log.i("Testing", "The glu avg rgb before adjustment is: "+ rgb[0] + " " + rgb[1] +" " + rgb[2]);
+    		//adjust(rgb, w_ref_rgb);
+    		//Log.i("Testing", "The glu avg rgb after adjustment is: "+ rgb[0] + " " + rgb[1] +" " + rgb[2]);
+    		//rgb = w_normalization(w_ref_rgb, rgb);
+    		//Log.i("Testing", "The glu avg rgb after adjustment is: "+ rgb[0] + " " + rgb[1] +" " + rgb[2]);
+        	//hsb = rgb2hsb(rgb);
+        	//h_glu[i]= hsb[0]*360;
+        	//Log.i("Testing", "The h is: "+ hsb[0]*360);
+        	//cmyk = rgb2cmyk(rgb);
+        	//k_glu[i] = cmyk[3];
     	}
+    	//rgb = cal_avg_rgb(analysis_bitmap, glu_target_width, glu_target_height, true);
     	
-    	//concentration = linear_regression(urine_c, h);
-    	
-    	concentration = nearest_neighbor(urine_c, h, 0.4774f);
+    	h_avg = h_avg(analysis_bitmap, glu_target_width, glu_target_height,w_ref_rgb);
+    	//Log.i("Testing", "The h average is: " + Float.toString(h_avg));
+    	//rgb = w_normalization(w_ref_rgb, rgb);
+    	//Log.i("Testing", "The target glu avg rgb is: "+ rgb[0] + " " + rgb[1] +" " + rgb[2]);
+    	//hsb = rgb2hsb(rgb);
+    	//target_glu = hsb[0]*360;
+    	//cmyk = rgb2cmyk(rgb);
+    	//target_k_glu = cmyk[3];
+    	target_glu = h_avg *360;
 
+    	//result_glu = nearest_neighbor(glu_c, k_glu, target_k_glu);
+    	result_glu = nearest_neighbor(glu_c, h_glu, target_glu);
+    	if(result_glu < 0){
+    		result_glu = 0;
+    	}
+    	if(result_pro < 0){
+    		result_pro = 0;
+    	}
+    	t_glu.setText("Glucose concentration: " + Float.toString(result_glu) + " mmol/L");
+    	t_pro.setText("Protein concentration: " + Float.toString(result_pro) + " mmol/L");
     	
-    	
-    	
-    	
-    	//Then use the testing cube X Y for nearest neighbor.
-    	//nearest_neighbor(X,Y);
-    	//Need two round to calculate average. one is to calculate the Reference, one is to calculate the test cube. 
-    	//For reference, needs to add the value to reference list after converting to XY.
-    	//The r g b might not work, then return an object such as arraylist.
-    	//Log.i("Testing", "The rgb is: " + Integer.toString(r) +" "+Integer.toString(g) + " "+ Integer.toString(b));**/
-
-
-    	   	
-    	return concentration;
+    
     }
     public static int[] w_normalization(int[] w_rgb, int[] rgb){
-    	rgb[0] = (int)(rgb[0] *(float)255/w_rgb[0]);
-    	rgb[1] = (int)(rgb[1] *(float)255/w_rgb[1]);
-    	rgb[2] = (int)(rgb[2] *(float)255/w_rgb[2]);
+    	rgb[0] = (int)(rgb[0] *(float)256/w_rgb[0]);
+    	rgb[1] = (int)(rgb[1] *(float)256/w_rgb[1]);
+    	rgb[2] = (int)(rgb[2] *(float)256/w_rgb[2]);
     	return rgb;
     	
     }
-    
+    public static int[] adjust (int[] rgb, int[] w_ref_rgb){
+    	for(int i = 0; i<3; i++){
+    		rgb[i]=(int)(rgb[i]*25 - 12*w_ref_rgb[i])/13;
+    	}
+    	   	
+    	return rgb;	
+    }
+    public static float h_avg(Bitmap analysis_bitmap, int x, int y, int[] w_ref_rgb){
+    	int green = 0;
+    	int blue = 0;
+    	int red = 0;
+    	int argb =0;
+    	float h = 0;
+    	int rgb[] = new int[3];
+    	float hsb[] = new float[3];
+    	for(int j =y; j<y + cube_y;j++){
+    		for (int i = x;i<x + cube_x;i++){
+    			argb = analysis_bitmap.getPixel(i,j); 
+    	    	red = red + Color.red(argb);
+    	    	green =  green +Color.green(argb);
+    	    	blue = blue +Color.blue(argb);
+    	    	rgb[0] = red;
+    	    	rgb[1] = green;
+    	    	rgb[2] = blue;
+    	    	rgb = w_normalization(w_ref_rgb, rgb);
+    	    	hsb = rgb2hsb(rgb);
+    	    	h = h + hsb[0];
+    	    	//Log.i("Testing", "The avg h is: "+ Float.toString(h));
+    	    	}
+    	}
+    	red = (int) (red/(cube_x*cube_y));
+    	green = (int) (green/(cube_x*cube_y));
+    	blue = (int) (blue/(cube_x*cube_y));
+    	
+    	h = h/(cube_x*cube_y);
+    	
+    	
+    	
+    	return h;
+    }
     public static int[] cal_avg_rgb(Bitmap analysis_bitmap, int x, int y, boolean ref){
     	int green = 0;
     	int blue = 0;

@@ -62,13 +62,23 @@
         android:text="Load" />
 
     <TextView
-        android:id="@+id/info"
+        android:id="@+id/glu"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_above="@+id/photo"
-        android:layout_alignLeft="@+id/imageView1"
-        android:layout_marginBottom="50dp"
-        android:text="Concentration: "
-        android:textAppearance="?android:attr/textAppearanceLarge" />
+        android:layout_alignLeft="@+id/photo"
+        android:layout_marginBottom="53dp"
+        android:text="Glucose concentration: "
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <TextView
+        android:id="@+id/pro"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/photo"
+        android:layout_alignRight="@+id/textView2"
+        android:layout_marginBottom="14dp"
+        android:text="Protein concentration: "
+        android:textAppearance="?android:attr/textAppearanceSmall" />
 
 </RelativeLayout>

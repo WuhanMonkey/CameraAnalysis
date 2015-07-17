@@ -31,7 +31,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_marginBottom="20dp"
-        android:text="For Glucose testing, Click Photo Button to take a picture, then use Analysis button to estimate the sample concentration"
+        android:text="For Blood testing, Click Photo Button to take a picture, then use Analysis button to estimate the sample concentration"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
     <Button
@@ -63,13 +63,52 @@
         android:text="Load" />
 
     <TextView
-        android:id="@+id/info"
+        android:id="@+id/chl"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/hdl"
+        android:layout_marginBottom="15dp"
+        android:text="Cholesterol concentration: "
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <TextView
+        android:id="@+id/hdl"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_above="@+id/photo"
+        android:layout_alignLeft="@+id/photo"
+        android:layout_marginBottom="9dp"
+        android:text="HDL concentration: "
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <TextView
+        android:id="@+id/glu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/chl"
+        android:layout_alignLeft="@+id/chl"
+        android:layout_marginBottom="14dp"
+        android:text="Glucose concentration: "
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <TextView
+        android:id="@+id/glu_warn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/glu"
         android:layout_alignLeft="@+id/imageView1"
-        android:layout_marginBottom="38dp"
-        android:text="Concentration: "
-        android:textAppearance="?android:attr/textAppearanceLarge" />
+        android:layout_marginBottom="48dp"
+        android:text=""
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <TextView
+        android:id="@+id/chl_warn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/glu"
+        android:layout_alignRight="@+id/textView2"
+        android:layout_marginBottom="17dp"
+        android:text=""
+        android:textAppearance="?android:attr/textAppearanceSmall" />
 
 </RelativeLayout>

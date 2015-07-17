@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.view.View;
+import com.Liulab.cameraanalysis.R;
 
 public class Directory extends Activity{
 	@Override
