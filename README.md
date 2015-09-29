@@ -8,3 +8,11 @@ Take picture within the bounding box.
 Click "Analysis", the app will return an estimation of the concentration.
 
 Credit to Chengpeng Hu from University of Illinois at Urbana-Champaign.
+
+Selection Page:
+
+<img src=https://github.com/WuhanMonkey/CameraAnalysis/blob/master/CA1.png width=400 height=700 />
+
+Analysis Page:
+
+<img src=https://github.com/WuhanMonkey/CameraAnalysis/blob/master/CA2.png width=400 height=700 />
